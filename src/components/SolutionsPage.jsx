@@ -41,12 +41,12 @@ function SolutionsPage() {
   return (
     <div>
       {/* --- Search Bar --- */}
-      <div className="mb-8 relative">
+      <div className="mb-10 relative">
 
         <input
           type="text"
           placeholder="Search labs or courses (e.g., GSP421, Cloud Storage...)"
-          className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -55,13 +55,13 @@ function SolutionsPage() {
 
       {/* --- Skill Badges Section --- */}
       <h2 className="text-3xl font-bold text-gray-900 mb-2">
-        📚 Skill Badges
+        Skill Badges
       </h2>
       <p className="text-lg text-gray-600 mb-6">
         Complete all 19 Skill Badges to be eligible for rewards.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 items-start">
         {/* 3. Use the FILTERED list and add animation */}
         {filteredSkillBadges.map((course, index) => (
           <motion.div
@@ -83,13 +83,13 @@ function SolutionsPage() {
 
       {/* --- Arcade Game Section --- */}
       <h2 className="text-3xl font-bold text-gray-900 mt-16 mb-2">
-        🎮 Arcade Game
+        Arcade Game
       </h2>
       <p className="text-lg text-gray-600 mb-6">
         Complete the Gen AI Arcade Game as your final requirement.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10 items-start">
         {/* 4. Use the FILTERED list and add animation */}
         {filteredArcadeGame.map((course, index) => (
           <motion.div

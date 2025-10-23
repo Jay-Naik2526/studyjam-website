@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import SolutionsPage from './components/SolutionsPage';
 import RulesPage from './components/RulesPage';
+import LeaderboardPage from './components/LeaderboardPage';
+import TeamsPage from './components/TeamsPage';
 import Footer from './components/Footer';
 import Menu from './components/Menu';
 import ScrollToTop from './components/ScrollToTop';
+import cloudImage from './assets/cloud.png';
 // 1. Import animation components
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -26,12 +29,25 @@ function App() {
   };
 
   return (
-    <div className="bg-gray-100 text-gray-800 min-h-screen relative overflow-x-hidden">
+    <div className="bg-gray-50 text-gray-800 min-h-screen relative overflow-x-hidden">
 
       <Header 
         setCurrentPage={setCurrentPage} 
         setIsOpen={setIsMenuOpen} 
       />
+
+      {/* Hero Section with Cloud Image */}
+      <section className="relative bg-black py-6">
+        <div className="w-full">
+          <div className="text-center">
+            <img 
+              src={cloudImage} 
+              alt="Cloud Hero" 
+              className="mx-auto h-32 sm:h-40 lg:h-48 w-auto object-contain"
+            />
+          </div>
+        </div>
+      </section>
 
       <Menu 
         isOpen={isMenuOpen}
@@ -40,7 +56,7 @@ function App() {
         setCurrentPage={setCurrentPage}
       />
 
-      <main className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-white relative">
         {/* 2. Wrap the page content with AnimatePresence */}
         <AnimatePresence mode="wait"> {/* 'wait' ensures one page fades out before the next fades in */}
           {/* 3. Use the currentPage as a key to trigger animation on change */}
@@ -53,7 +69,10 @@ function App() {
             variants={pageVariants}
             transition={pageTransition}
           >
-            {currentPage === 'solutions' ? <SolutionsPage /> : <RulesPage />}
+            {currentPage === 'solutions' && <SolutionsPage />}
+            {currentPage === 'rules' && <RulesPage />}
+            {currentPage === 'leaderboard' && <LeaderboardPage />}
+            {currentPage === 'teams' && <TeamsPage />}
           </motion.div>
         </AnimatePresence>
       </main>

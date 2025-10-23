@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaBook, FaScroll } from 'react-icons/fa';
+import { FaBook, FaScroll, FaTrophy, FaUsers } from 'react-icons/fa';
 
 // This component receives 4 props
 function Menu({ isOpen, setIsOpen, currentPage, setCurrentPage }) {
@@ -11,11 +11,11 @@ function Menu({ isOpen, setIsOpen, currentPage, setCurrentPage }) {
   };
 
   const getButtonClasses = (pageName) => {
-    const baseClasses = 'flex items-center w-full space-x-3 px-4 py-3 rounded-lg font-medium text-lg text-left';
+    const baseClasses = 'flex items-center w-full space-x-3 px-4 py-3 rounded-lg font-medium text-lg text-left transition-all duration-300 transform hover:scale-105 hover:shadow-md';
     if (currentPage === pageName) {
-      return `${baseClasses} bg-blue-100 text-blue-700`;
+      return `${baseClasses} bg-gray-100 text-gray-800 shadow-sm`;
     } else {
-      return `${baseClasses} text-gray-700 hover:bg-gray-100`;
+      return `${baseClasses} text-gray-700 hover:bg-gray-100 hover:text-gray-900`;
     }
   };
 
@@ -30,7 +30,7 @@ function Menu({ isOpen, setIsOpen, currentPage, setCurrentPage }) {
       >
         <div className="p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Navigation</h2>
-          <div className="space-y-2">
+          <div className="space-y-4">
             <button
               className={getButtonClasses('solutions')}
               onClick={() => handleNavClick('solutions')}
@@ -44,6 +44,20 @@ function Menu({ isOpen, setIsOpen, currentPage, setCurrentPage }) {
             >
               <FaScroll />
               <span>Rules & Guidelines</span>
+            </button>
+            <button
+              className={getButtonClasses('leaderboard')}
+              onClick={() => handleNavClick('leaderboard')}
+            >
+              <FaTrophy />
+              <span>Leaderboard</span>
+            </button>
+            <button
+              className={getButtonClasses('teams')}
+              onClick={() => handleNavClick('teams')}
+            >
+              <FaUsers />
+              <span>Teams</span>
             </button>
           </div>
         </div>

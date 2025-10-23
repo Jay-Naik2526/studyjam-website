@@ -33,7 +33,7 @@ function RulesPage() {
         className="flex flex-col md:flex-row items-center justify-between bg-white border border-gray-200 rounded-lg shadow-md p-6 mb-12"
       >
         <div className="flex items-center mb-4 md:mb-0">
-          <FaCreditCard className="w-10 h-10 text-blue-600" />
+          <FaCreditCard className="w-10 h-10 text-grey-600" />
           <div className="ml-4">
             <h3 className="text-lg font-semibold text-gray-900">
               Haven't Redeemed Your Google Cloud Credits?
@@ -45,10 +45,10 @@ function RulesPage() {
           </div>
         </div>
         <a
-          href="https://docs.google.com/document/d/1e4pKLEfAqCcRl5LmHLaO4f3vKAvDjelm85IUTiaN_no/edit?tab=t.0#heading=h.g7dr31dq0zf5"
+          href="https://acrobat.adobe.com/id/urn:aaid:sc:AP:6fd42303-9994-46c5-ba5f-0b6a62547f2e"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-blue-600 text-white font-medium px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
+          className="bg-black-600 text-black font-medium px-5 py-2 rounded-lg hover:bg-black-700 transition-colors flex-shrink-0"
         >
           Redeem Now →
         </a>
@@ -61,11 +61,11 @@ function RulesPage() {
         variants={sectionVariants}
         transition={{ delay: 0.1 }}
       >
-        <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">
+        <h2 className="text-3xl font-bold text-gray-700 mb-2 text-center">
           Easy Steps for Completing Labs
         </h2>
         <p className="text-lg text-gray-600 mb-8 text-center">
-          Follow these proven steps to complete any lab successfully! 🎯
+          Follow these proven steps to complete any lab successfully.
         </p>
       </motion.div>
 
@@ -78,10 +78,10 @@ function RulesPage() {
       >
         {/* Step 1 */}
         <div className="flex items-start bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-          <div className="text-3xl font-bold text-blue-600 mr-5">1</div>
+          <div className="text-3xl font-bold text-grey-600 mr-5">1</div>
           <div>
             <h3 className="text-xl font-semibold text-gray-900">
-              📝 Copy the Lab Code
+              Copy the Lab Code
             </h3>
             <p className="text-gray-700 mt-1">
               Copy the code of that lab (e.g.,{' '}
@@ -94,10 +94,10 @@ function RulesPage() {
         </div>
         {/* Step 2 */}
         <div className="flex items-start bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-          <div className="text-3xl font-bold text-blue-600 mr-5">2</div>
+          <div className="text-3xl font-bold text-grey-600 mr-5">2</div>
           <div>
             <h3 className="text-xl font-semibold text-gray-900">
-              🔍 Search on YouTube
+              Search on YouTube
             </h3>
             <p className="text-gray-700 mt-1">
               Search the lab code on YouTube (e.g., "gsp421 solution").
@@ -106,10 +106,10 @@ function RulesPage() {
         </div>
         {/* Step 3 */}
         <div className="flex items-start bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-          <div className="text-3xl font-bold text-blue-600 mr-5">3</div>
+          <div className="text-3xl font-bold text-grey-600 mr-5">3</div>
           <div>
             <h3 className="text-xl font-semibold text-gray-900">
-              📅 Look for Latest Video
+              Look for Latest Video
             </h3>
             <p className="text-gray-700 mt-1">
               Use YouTube filters → Sort by "Upload date" → Select "This month".
@@ -118,10 +118,10 @@ function RulesPage() {
         </div>
         {/* Step 4 */}
         <div className="flex items-start bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-          <div className="text-3xl font-bold text-blue-600 mr-5">4</div>
+          <div className="text-3xl font-bold text-grey-600 mr-5">4</div>
           <div>
             <h3 className="text-xl font-semibold text-gray-900">
-              💬 Check Comments
+              Check Comments
             </h3>
             <p className="text-gray-700 mt-1">
               Read the comments to verify the solution is working.
@@ -130,10 +130,10 @@ function RulesPage() {
         </div>
         {/* Step 5 */}
         <div className="flex items-start bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-          <div className="text-3xl font-bold text-blue-600 mr-5">5</div>
+          <div className="text-3xl font-bold text-grey-600 mr-5">5</div>
           <div>
             <h3 className="text-xl font-semibold text-gray-900">
-              🎯 Follow Step by Step
+              Follow Step by Step
             </h3>
             <p className="text-gray-700 mt-1">
               Pause the video after each step, complete it in your lab, then
@@ -154,7 +154,7 @@ function RulesPage() {
           Important Rules to Follow
         </h2>
         <p className="text-lg text-gray-600 mb-8 text-center">
-          Keep these in mind to avoid any issues and ensure success! 🎓
+          Keep these in mind to avoid any issues and ensure success.
         </p>
       </motion.div>
 
@@ -250,7 +250,7 @@ function RulesPage() {
         className="text-center mt-16"
       >
         <h2 className="text-3xl font-bold text-gray-900">
-          Ready to Start Your Journey? 🚀
+          Ready to Start Your Journey?
         </h2>
         <p className="text-lg text-gray-600 mt-3 mb-6">
           Follow these rules and you'll complete all 20 courses in no time!
