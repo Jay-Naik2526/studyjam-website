@@ -24,10 +24,12 @@ const MAIN_NAME_HEADER = 'User Name';
 const MAIN_BADGES_HEADER = '# of Skill Badges Completed';
 const MAIN_ARCADE_HEADER = '# of Arcade Games Completed';
 const MAIN_PROFILE_HEADER = 'Google Cloud Skills Boost Profile URL';
+// NEW: Constant for localStorage Key
+const LOCAL_STORAGE_KEY = 'studyjam_stable_rank_map';
 // --- End Constants ---
 
 
-// Helper functions (calculateProgress, formatTimestamp) remain the same...
+// Helper functions
 const calculateProgress = (skillBadges, arcadeGame) => {
   const badges = parseInt(skillBadges || 0);
   const arcade = parseInt(arcadeGame || 0);
@@ -43,6 +45,27 @@ const formatTimestamp = (timestamp) => {
         return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
     } catch (e) { return "Error"; }
 };
+
+// NEW: LocalStorage Helpers for Stable Rank
+const loadPersistentData = () => {
+    try {
+        const json = localStorage.getItem(LOCAL_STORAGE_KEY);
+        // map: { email: stableIndex }, nextStableIndex: Number
+        return json ? JSON.parse(json) : { map: {}, nextStableIndex: 0 };
+    } catch (e) {
+        console.error("Could not load persistent data from localStorage:", e);
+        return { map: {}, nextStableIndex: 0 };
+    }
+};
+
+const savePersistentData = (data) => {
+    try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+        console.error("Could not save persistent data to localStorage:", e);
+    }
+};
+
 
 function LeaderboardPage() {
   const { readString } = usePapaParse();
@@ -63,6 +86,11 @@ function LeaderboardPage() {
       setError(null);
       let fetchedTeamMap = {};
       let fetchedMainData = [];
+      
+      // STEP 1: Load previous persistent data (rankings) from browser storage
+      let { map: stableRankMap, nextStableIndex } = loadPersistentData();
+      let updatedStableRankMap = { ...stableRankMap };
+      let maxStableIndex = nextStableIndex; 
 
       try {
         // --- Fetch and Parse Team Data ---
@@ -148,6 +176,17 @@ function LeaderboardPage() {
                     const badges = row[MAIN_BADGES_HEADER];
                     const arcade = row[MAIN_ARCADE_HEADER];
                     const total = (parseInt(badges || 0) + parseInt(arcade || 0));
+                    
+                    // STEP 2: Assign stable index for persistence
+                    let stableIndex;
+                    if (updatedStableRankMap[email] !== undefined) {
+                        stableIndex = updatedStableRankMap[email]; // Use old, saved index
+                    } else {
+                        stableIndex = maxStableIndex; // Assign new index
+                        updatedStableRankMap[email] = stableIndex;
+                        maxStableIndex++;
+                    }
+
                     return {
                       ...row,
                       [MAIN_BADGES_HEADER]: parseInt(badges || 0),
@@ -156,10 +195,14 @@ function LeaderboardPage() {
                       Progress: calculateProgress(badges, arcade),
                       'Profile URL': row[MAIN_PROFILE_HEADER]?.trim(), // Keep profile URL
                       TeamName: fetchedTeamMap[email] || 'N/A', // Assign team name using email map
-                      id: email || `row-${index}` // Use email as unique ID
+                      id: email || `row-${index}`, // Use email as unique ID
+                      StableIndex: stableIndex // <--- NEW STABLE INDEX FOR PERSISTENCE
                     }
                 }).filter(row => row[MAIN_NAME_HEADER] && row[MAIN_EMAIL_HEADER]);
 
+                // STEP 3: Save the updated map to the browser's persistent storage
+                savePersistentData({ map: updatedStableRankMap, nextStableIndex: maxStableIndex });
+                
                 console.log(`Processed ${fetchedMainData.length} rows from main leaderboard.`);
                 setRawData(fetchedMainData);
                 resolve();
@@ -214,6 +257,8 @@ function LeaderboardPage() {
         result.sort((a, b) => {
           let aValue = a[sortConfig.key];
           let bValue = b[sortConfig.key];
+          const sortDirection = sortConfig.direction === 'ascending' ? 1 : -1;
+
 
           if (['Progress', MAIN_BADGES_HEADER, MAIN_ARCADE_HEADER, 'Total Completions'].includes(sortConfig.key)) {
               aValue = Number(aValue || 0);
@@ -222,25 +267,25 @@ function LeaderboardPage() {
               aValue = String(aValue || '').toLowerCase();
               bValue = String(bValue || '').toLowerCase();
           }
+          
+          // 1. Primary Sort by selected column
+          if (aValue < bValue) return -1 * sortDirection;
+          if (aValue > bValue) return 1 * sortDirection;
 
-          if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
-          if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+          // --- STABLE TIE-BREAKER LOGIC (Persisted Rank) ---
 
-          // Secondary sort: Total Completions (desc)
+          // 2. Secondary Sort: Total Completions (Descending) 
           if (sortConfig.key !== 'Total Completions') {
               const totalA = a['Total Completions'] || 0;
               const totalB = b['Total Completions'] || 0;
-              if (totalA < totalB) return 1;
+              // We always want higher scores on top here (descending for score)
+              if (totalA < totalB) return 1; 
               if (totalA > totalB) return -1;
           }
-          // Tertiary Sort: Name (asc)
-          if (sortConfig.key !== MAIN_NAME_HEADER) {
-              const nameA = String(a[MAIN_NAME_HEADER] || '').toLowerCase();
-              const nameB = String(b[MAIN_NAME_HEADER] || '').toLowerCase();
-              if (nameA < nameB) return -1;
-              if (nameA > nameB) return 1;
-          }
-          return 0;
+          
+          // 3. Final Tie-breaker: Stable Index (Ascending). 
+          // This uses the historically assigned index to fix the rank order among tied players.
+          return a.StableIndex - b.StableIndex;
         });
       }
 
@@ -288,6 +333,7 @@ function LeaderboardPage() {
 
   // --- CSV Export (Includes Team) ---
   const handleExportCSV = () => {
+     // NOTE: This uses Papa.unparse, assuming the Papaparse library makes it available globally or through other means.
      const headers = [
         'CalculatedRank', 'User Name', 'User Email', 'TeamName', 'Progress',
         MAIN_BADGES_HEADER, MAIN_ARCADE_HEADER, 'Total Completions',
