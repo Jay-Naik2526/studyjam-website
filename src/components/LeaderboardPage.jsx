@@ -12,22 +12,22 @@ const TEAM_FILES = [
     { name: 'RIO (Cloud)', file: 'RIO (Cloud).csv' },
     { name: 'Berlin (Creative)', file: 'Berlin (Creative).csv' },
     { name: 'Tokyo (EM)', file: 'Tokyo (EM).csv' },
-    { name: 'Helsinki (AIML).csv', file: 'Helsinki (AIML).csv' },
+    { name: 'Helsinki (AIML)', file: 'Helsinki (AIML).csv' },
     { name: 'Denver (WEB)', file: 'Denver (WEB).csv' }
 ];
-const TEAM_EMAIL_HEADER = 'Confirm your email address linked to your Skills Boost Profile';
+// *** CORRECTED Header based on your team CSVs ***
+const TEAM_EMAIL_HEADER = 'Confirm your email address linked to your Skills Boost Profile'; // Updated based on your request
 
+// *** Ensure these still match your MAIN leaderboard CSV (leaderboard-data.csv) ***
 const MAIN_EMAIL_HEADER = 'User Email';
 const MAIN_NAME_HEADER = 'User Name';
 const MAIN_BADGES_HEADER = '# of Skill Badges Completed';
 const MAIN_ARCADE_HEADER = '# of Arcade Games Completed';
 const MAIN_PROFILE_HEADER = 'Google Cloud Skills Boost Profile URL';
-// NEW: Constant for localStorage Key
-const LOCAL_STORAGE_KEY = 'studyjam_stable_rank_map';
 // --- End Constants ---
 
 
-// Helper functions
+// Helper functions (calculateProgress, formatTimestamp) remain the same...
 const calculateProgress = (skillBadges, arcadeGame) => {
   const badges = parseInt(skillBadges || 0);
   const arcade = parseInt(arcadeGame || 0);
@@ -43,29 +43,6 @@ const formatTimestamp = (timestamp) => {
         return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
     } catch (e) { return "Error"; }
 };
-
-// NEW: LocalStorage Helpers for Stable Rank
-const loadPersistentData = () => {
-    try {
-        const json = localStorage.getItem(LOCAL_STORAGE_KEY);
-        // map: { email: stableIndex }, nextStableIndex: Number
-        return json ? JSON.parse(json) : { map: {}, nextStableIndex: 0 };
-    } catch (e) {
-        // If localStorage is blocked (e.g., security settings or certain sandboxes), we fall back to a non-persistent map
-        console.error("Could not load persistent data from localStorage. Ranking stability may be compromised if CSV order is random.", e);
-        return { map: {}, nextStableIndex: 0 };
-    }
-};
-
-const savePersistentData = (data) => {
-    try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-        // Handle saving failure silently but log it
-        console.warn("Could not save persistent data to localStorage. Ranking stability will only last for this session.", e);
-    }
-};
-
 
 function LeaderboardPage() {
   const { readString } = usePapaParse();
@@ -86,11 +63,6 @@ function LeaderboardPage() {
       setError(null);
       let fetchedTeamMap = {};
       let fetchedMainData = [];
-      
-      // STEP 1: Load previous persistent data (rankings) from browser storage
-      let { map: stableRankMap, nextStableIndex } = loadPersistentData();
-      let updatedStableRankMap = { ...stableRankMap };
-      let maxStableIndex = nextStableIndex; 
 
       try {
         // --- Fetch and Parse Team Data ---
@@ -108,9 +80,10 @@ function LeaderboardPage() {
                 transformHeader: header => header.trim(),
                 complete: (results) => {
                   if (results.errors.length > 0) console.warn(`Parsing warnings in ${team.file}:`, results.errors);
-                  // Check headers
+                  // ** Crucial Check with updated TEAM_EMAIL_HEADER **
                   if (results.data.length > 0 && !(TEAM_EMAIL_HEADER in results.data[0])) {
                       const foundHeaders = Object.keys(results.data[0] || {});
+                      // Truncate long header in error message for readability
                       const truncatedExpectedHeader = TEAM_EMAIL_HEADER.length > 50 ? TEAM_EMAIL_HEADER.substring(0, 47) + '...' : TEAM_EMAIL_HEADER;
                       const errorMsg = `Expected header '${truncatedExpectedHeader}' not found in ${team.file}. Found: [${foundHeaders.join(', ')}]. Check TEAM_EMAIL_HEADER constant or CSV.`;
                       console.error(errorMsg);
@@ -119,6 +92,7 @@ function LeaderboardPage() {
                   console.log(`Parsed ${team.file}, found ${results.data.length} rows.`);
                   resolve({
                       teamName: team.name,
+                      // Extract emails using CORRECTED header, trim, lowercase, filter empty
                       emails: results.data.map(row => row[TEAM_EMAIL_HEADER]?.trim().toLowerCase()).filter(email => email)
                   });
                 },
@@ -156,7 +130,7 @@ function LeaderboardPage() {
               transformHeader: header => header.trim(),
               complete: (results) => {
                 if (results.errors.length > 0) console.error("CSV Parsing Errors (Main):", results.errors);
-                // Check headers
+                // Check essential headers in main file
                 if (results.data.length > 0) {
                      const firstRowKeys = Object.keys(results.data[0]);
                      const requiredHeaders = [MAIN_EMAIL_HEADER, MAIN_NAME_HEADER, MAIN_BADGES_HEADER, MAIN_ARCADE_HEADER, MAIN_PROFILE_HEADER];
@@ -174,17 +148,6 @@ function LeaderboardPage() {
                     const badges = row[MAIN_BADGES_HEADER];
                     const arcade = row[MAIN_ARCADE_HEADER];
                     const total = (parseInt(badges || 0) + parseInt(arcade || 0));
-                    
-                    // STEP 2: Assign stable index for persistence
-                    let stableIndex;
-                    if (updatedStableRankMap[email] !== undefined) {
-                        stableIndex = updatedStableRankMap[email]; // Use old, saved index
-                    } else {
-                        stableIndex = maxStableIndex; // Assign new index
-                        updatedStableRankMap[email] = stableIndex;
-                        maxStableIndex++;
-                    }
-
                     return {
                       ...row,
                       [MAIN_BADGES_HEADER]: parseInt(badges || 0),
@@ -193,15 +156,11 @@ function LeaderboardPage() {
                       Progress: calculateProgress(badges, arcade),
                       'Profile URL': row[MAIN_PROFILE_HEADER]?.trim(), // Keep profile URL
                       TeamName: fetchedTeamMap[email] || 'N/A', // Assign team name using email map
-                      id: email || `row-${index}`, // Use email as unique ID
-                      StableIndex: stableIndex // <--- NEW STABLE INDEX FOR PERSISTENCE
+                      id: email || `row-${index}` // Use email as unique ID
                     }
                 }).filter(row => row[MAIN_NAME_HEADER] && row[MAIN_EMAIL_HEADER]);
 
-                // STEP 3: Save the updated map to the browser's persistent storage
-                savePersistentData({ map: updatedStableRankMap, nextStableIndex: maxStableIndex });
-                
-                console.log(`Processed ${fetchedMainData.length} rows with stable ranks.`);
+                console.log(`Processed ${fetchedMainData.length} rows from main leaderboard.`);
                 setRawData(fetchedMainData);
                 resolve();
               },
@@ -219,7 +178,7 @@ function LeaderboardPage() {
     };
 
     fetchData();
-    // Removed: interval logic for simplicity and to match the file upload model.
+    // interval omitted
   }, [readString]);
 
  // --- Filtering and Sorting Logic ---
@@ -255,8 +214,6 @@ function LeaderboardPage() {
         result.sort((a, b) => {
           let aValue = a[sortConfig.key];
           let bValue = b[sortConfig.key];
-          const sortDirection = sortConfig.direction === 'ascending' ? 1 : -1;
-
 
           if (['Progress', MAIN_BADGES_HEADER, MAIN_ARCADE_HEADER, 'Total Completions'].includes(sortConfig.key)) {
               aValue = Number(aValue || 0);
@@ -265,25 +222,25 @@ function LeaderboardPage() {
               aValue = String(aValue || '').toLowerCase();
               bValue = String(bValue || '').toLowerCase();
           }
-          
-          // 1. Primary Sort by selected column
-          if (aValue < bValue) return -1 * sortDirection;
-          if (aValue > bValue) return 1 * sortDirection;
 
-          // --- STABLE TIE-BREAKER LOGIC (Persisted Rank) ---
+          if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+          if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
 
-          // 2. Secondary Sort: Total Completions (Descending) 
+          // Secondary sort: Total Completions (desc)
           if (sortConfig.key !== 'Total Completions') {
               const totalA = a['Total Completions'] || 0;
               const totalB = b['Total Completions'] || 0;
-              // We always want higher scores on top here (descending for score)
-              if (totalA < totalB) return 1; 
+              if (totalA < totalB) return 1;
               if (totalA > totalB) return -1;
           }
-          
-          // 3. Final Tie-breaker: Stable Index (Ascending). 
-          // This uses the historically assigned index to fix the rank order among tied players.
-          return a.StableIndex - b.StableIndex;
+          // Tertiary Sort: Name (asc)
+          if (sortConfig.key !== MAIN_NAME_HEADER) {
+              const nameA = String(a[MAIN_NAME_HEADER] || '').toLowerCase();
+              const nameB = String(b[MAIN_NAME_HEADER] || '').toLowerCase();
+              if (nameA < nameB) return -1;
+              if (nameA > nameB) return 1;
+          }
+          return 0;
         });
       }
 
@@ -331,7 +288,6 @@ function LeaderboardPage() {
 
   // --- CSV Export (Includes Team) ---
   const handleExportCSV = () => {
-     // NOTE: This assumes PapaParse library makes Papa.unparse available globally.
      const headers = [
         'CalculatedRank', 'User Name', 'User Email', 'TeamName', 'Progress',
         MAIN_BADGES_HEADER, MAIN_ARCADE_HEADER, 'Total Completions',
@@ -348,12 +304,6 @@ function LeaderboardPage() {
         'Total Completions': row['Total Completions'],
         [MAIN_PROFILE_HEADER]: row['Profile URL'], // Use correct key
      }));
-     // Check for Papa.unparse availability
-     if(typeof Papa === 'undefined' || !Papa.unparse) {
-         console.error("PapaParse library not available for CSV export.");
-         alert("CSV Export failed: PapaParse library not found.");
-         return;
-     }
      const csvContent = "data:text/csv;charset=utf-8," + Papa.unparse({ fields: headers, data: csvData });
      const encodedUri = encodeURI(csvContent);
      const link = document.createElement("a");
@@ -367,7 +317,7 @@ function LeaderboardPage() {
 
   // --- Render Logic (UI structure remains largely the same) ---
   if (loading) { return ( <div className="flex justify-center items-center h-64"> <FaSpinner className="animate-spin text-red-600 w-12 h-12" /> <span className="ml-4 text-lg text-gray-600">Loading Leaderboard Data...</span> </div> ); }
-  if (error) { return ( <div className="text-center text-red-600 bg-red-100 p-6 rounded-lg shadow max-w-2xl mx-auto"> <h2 className="text-xl font-semibold">Error Loading Data</h2> <p>{error}</p> <p className="mt-2 text-sm">Please ensure CSV files exist in <code>public/</code> and <code>public/teams/</code> and headers **exactly** match constants. Check console (F12).</p> </div> ); }
+  if (error) { return ( <div className="text-center text-red-600 bg-red-100 p-6 rounded-lg shadow max-w-2xl mx-auto"> <h2 className="text-xl font-semibold">Error Loading Data</h2> <p>{error}</p> <p className="mt-2 text-sm">Please ensure CSV files exist in <code>public/</code> and <code>public/teams/</code> and headers **exactly** match constants (e.g., '{MAIN_NAME_HEADER}', '{TEAM_EMAIL_HEADER}'). Check console (F12).</p> </div> ); }
 
 
   return (
@@ -406,7 +356,7 @@ function LeaderboardPage() {
                    <option value="Progress">Progress %</option>
                    <option value={MAIN_BADGES_HEADER}>Skill Badges</option>
                  </select>
-                 <button onClick={() => handleSort(sortConfig.key)} className="p-1 text-gray-600 hover:text-red-600"> {sortConfig.direction === 'ascending' ? '▲' : '▼'} </button>
+                 <button onClick={() => handleSort(sortConfig.key)} className="p-1 text-gray-600 hover:text-red-600"> {sortConfig.direction === 'ascending' ? <FaSortAmountUp /> : <FaSortAmountDown />} </button>
                </div>
                <div className="flex items-center space-x-2">
                   <button onClick={handleExportCSV} className="flex items-center space-x-1 text-sm bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 transition-colors"> <FaFileCsv /> <span>CSV</span> </button>
